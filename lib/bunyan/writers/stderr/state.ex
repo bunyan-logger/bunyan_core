@@ -24,7 +24,9 @@ defmodule Bunyan.Writers.Stderr.State do
       @error => light_red() <> bright()
     },
     timestamp_color: faint(),
-    metadata_color:  italic() <> faint()
+    metadata_color:  italic() <> faint(),
+
+    use_ansi_color?: true
   )
 
 

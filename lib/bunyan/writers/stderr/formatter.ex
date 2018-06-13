@@ -22,17 +22,23 @@ defmodule Bunyan.Writers.Stderr.Formatter do
   # stolen in part from Logger.Formatter
   @regex Regex.recompile!(~r/(?<head>)\$[a-z_]+(?:\(\d+\))?(?<tail>)/)
 
-  def compile_format(main_format, extra_format) do
+  # this is all compile time, so we try to do as much work here as
+  # we can.
+
+  def compile_format(main_format, extra_format, state) do
+
+    is_color?    = !!state.use_ansi_color?
 
     main_format_fields = fields_in(main_format)
 
-    main_message = Enum.map(main_format_fields, &field_builder/1)
+    main_message = Enum.map(main_format_fields, &field_builder(&1, is_color?))
     prefix_size  = prefix_size(main_format_fields)
     padding      = String.duplicate(" ", prefix_size)
 
+
     extra_message =
       fields_in(extra_format)
-      |> Enum.map(&field_builder/1)
+      |> Enum.map(&field_builder(&1, is_color?))
 
 
     preload = if main_format <> extra_format =~ ~r/\$(date|time)/ do
@@ -45,7 +51,9 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
     quote do
       fn (level, msg, metadata, time, state) ->
-        [ msg_first_line, msg_rest ] = String.split(msg, ~r/\n/, trim: true, parts: 2)
+        String.split(msg, ~r/\n/, trim: true, parts: 2) |> IO.inspect
+        [ msg_first_line | msg_rest ] = String.split(msg, ~r/\n/, trim: true, parts: 2)
+
         unquote(preload)
 
         [
@@ -55,32 +63,50 @@ defmodule Bunyan.Writers.Stderr.Formatter do
       end
     end
     |> Code.eval_quoted()
+    |> elem(0)
   end
 
 
   ##################################################################################
 
-  defp field_builder("$date") do
+  defp field_builder("$date", _ansi = true) do
     quote do
       [
         state.timestamp_color,
         unquote(__MODULE__).format_date(utc_date),
         unquote(@ansi_reset)
-    ]
-  end
+      ]
+    end
   end
 
-  defp field_builder("$time") do
+  defp field_builder("$date", _ansi = false) do
+    quote do
+      unquote(__MODULE__).format_date(utc_date)
+    end
+  end
+
+
+
+  defp field_builder("$time", _ansi = true) do
     quote do
       [
         state.timestamp_color,
         unquote(__MODULE__).format_time(utc_time, time),
         unquote(@ansi_reset)
-    ]
-  end
+      ]
+    end
   end
 
-  defp field_builder("$datetime") do
+  defp field_builder("$time", _ansi = false) do
+    quote do
+      unquote(__MODULE__).format_time(utc_time, time)
+    end
+  end
+
+
+
+
+  defp field_builder("$datetime", _ansi = true) do
     quote do
       [
         state.timestamp_color,
@@ -90,9 +116,17 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end
   end
 
+  defp field_builder("$datetime", _ansi = false) do
+    quote do
+      "#{unquote(__MODULE__).format_date(utc_date)} #{unquote(__MODULE__).format_time(utc_time, time)}"
+    end
+  end
 
 
-  defp field_builder("$message_first_line") do
+
+
+
+  defp field_builder("$message_first_line", _ansi = true) do
     quote do
       [
         state.message_colors[level],
@@ -102,7 +136,15 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end
   end
 
-  defp field_builder("$message_rest") do
+  defp field_builder("$message_first_line", _ansi = false) do
+    quote do
+      msg_first_line
+    end
+  end
+
+
+
+  defp field_builder("$message_rest", _ansi = true) do
     quote do
       [
         state.message_colors[level],
@@ -112,7 +154,15 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end
   end
 
-  defp field_builder("$message") do
+  defp field_builder("$message_rest", _ansi = false) do
+    quote do
+      msg_rest
+    end
+  end
+
+
+
+  defp field_builder("$message", _ansi = true) do
     quote do
       [
         state.message_colors[level],
@@ -122,7 +172,14 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end
   end
 
-  defp field_builder("$level") do
+  defp field_builder("$message", _ansi = false) do
+    quote do
+      msg
+    end
+  end
+
+
+  defp field_builder("$level", _ansi = true) do
     quote do
       [
         state.level_colors[level],
@@ -131,18 +188,28 @@ defmodule Bunyan.Writers.Stderr.Formatter do
       ]
     end
   end
-  defp field_builder("$node") do
+
+  defp field_builder("$level", _ansi = false) do
+    quote do
+      Bunyan.Level.to_s(level)
+    end
+  end
+
+
+
+  defp field_builder("$node", _) do
     quote do
       inspect(node)
     end
   end
-  defp field_builder("$pid") do
+
+  defp field_builder("$pid", _) do
     quote do
       inspect(pid)
     end
   end
 
-  defp field_builder("$metadata") do
+  defp field_builder("$metadata", _ansi = true) do
     quote do
       [
         state.metadata_color,
@@ -152,8 +219,15 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end
   end
 
+  defp field_builder("$metadata", _ansi = false) do
+    quote do
+      unquote(__MODULE__).format_metadata(metadata)
+    end
+  end
 
-  defp field_builder("$" <> rest) do
+
+
+  defp field_builder("$" <> rest, _) do
     raise """
 
     Unknown Logger format field: $#{rest}
@@ -173,7 +247,7 @@ defmodule Bunyan.Writers.Stderr.Formatter do
   end
 
 
-  defp field_builder(text) do
+  defp field_builder(text, _) do
     quote do
       unquote(text)
     end
@@ -201,7 +275,6 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
   defp fields_in(format) do
-    IO.inspect fields_in: [ @regex, format ]
     Regex.split(@regex, format <> "\n", on: [:head, :tail], trim: true)
   end
 
