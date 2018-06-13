@@ -34,8 +34,7 @@ defmodule Bunyan.Writers do
   end
 
   def add_writer({ writer, opts }) do
-    IO.inspect add_writer: { writer, opts }
-    IO.inspect DynamicSupervisor.start_child(@me, { writer, opts })
+    DynamicSupervisor.start_child(@me, { writer, opts })
   end
 
   def log_message(msg = {_level, _msg, _meta, _time, _pid, _node}) do

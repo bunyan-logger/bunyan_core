@@ -51,8 +51,13 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
     quote do
       fn (level, msg, metadata, time, state) ->
-        String.split(msg, ~r/\n/, trim: true, parts: 2) |> IO.inspect
-        [ msg_first_line | msg_rest ] = String.split(msg, ~r/\n/, trim: true, parts: 2)
+
+        { msg_first_line, msg_rest } = case String.split(msg, ~r/\n/, trim: true, parts: 2) do
+          [] ->
+            { "", [] }
+          [ first | rest ] ->
+            { first, rest }
+        end
 
         unquote(preload)
 

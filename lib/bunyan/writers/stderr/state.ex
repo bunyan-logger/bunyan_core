@@ -1,6 +1,7 @@
 defmodule Bunyan.Writers.Stderr.State do
 
   alias Bunyan.Level
+  alias Bunyan.Writers.Stderr.Formatter
 
   @debug Level.of(:debug)
   @info  Level.of(:info)
@@ -10,7 +11,11 @@ defmodule Bunyan.Writers.Stderr.State do
   import IO.ANSI
 
   defstruct(
-    format_string:  "$time [$level] $pad(22) $message",
+    main_format_string:        "$time [$level] $message_first_line",
+    additional_format_string:  "$time [$level] $message_rest\n$metadata",
+
+    format_function:           nil,
+
     level_colors:   %{
       @debug => faint(),
       @info  => green(),
@@ -29,5 +34,46 @@ defmodule Bunyan.Writers.Stderr.State do
     use_ansi_color?: true
   )
 
+  def from_options(options) do
+    %__MODULE__{}
+    |> maybe_add(options, :main_format_string)
+    |> maybe_add(options, :additional_format_string)
+    |> maybe_add(options, :timestamp_color)
+    |> maybe_add(options, :metadata_color)
+    |> maybe_add(options, :use_ansi_color?)
+    |> maybe_update_colors(options, :level_colors)
+    |> maybe_update_colors(options, :message_colors)
+    |> precompile_format_function()
+  end
 
+  def precompile_format_function(options) do
+    %{ options | format_function: Formatter.compile_format(options.main_format_string, options.additional_format_string, options) }
+  end
+
+  def maybe_add(config, options, key) do
+    case options[key] do
+      nil ->
+        config
+      value ->
+        Map.put(config, key, value)
+    end
+  end
+
+  def maybe_update_colors(config, options, key) do
+    add_specific_colors(config, options[key], key)
+  end
+
+  def add_specific_colors(config, nil, _), do: config
+  def add_specific_colors(config, colors, key) do
+    original = Map.get(config, key)
+    updated = [ @debug, @info, @warn, @error ]
+              |> Enum.reduce(original, fn level, updated ->
+                   maybe_add_to_map(updated, level, colors[Level.to_atom(level)])
+             end)
+
+    Map.put(config, key, updated)
+  end
+
+  defp maybe_add_to_map(map, _key, nil), do: map
+  defp maybe_add_to_map(map,  key, val), do: Map.put(map, key, val)
 end

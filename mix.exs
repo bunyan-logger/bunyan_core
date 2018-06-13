@@ -19,13 +19,43 @@ defmodule Bunyan.MixProject do
     ]
   end
 
+  @debug  0
+  @info  10
+  @warn  20
+  @error 30
+
   defp env() do
+    import IO.ANSI
+
     [
       name:             MyLogger,
       accept_remote_as: GlobalLogger,
       min_log_level:    :info,
       write_to:         [
-        { Bunyan.Writers.Stderr, [] },
+        {
+          Bunyan.Writers.Stderr, [
+            main_format_string:        "$time [$level] $message_first_line",
+            additional_format_string:  "$time [$level] $message_rest\n$metadata",
+
+            level_colors:   %{
+              @debug => faint(),
+              @info  => green(),
+              @warn  => yellow(),
+              @error => light_red() <> bright()
+            },
+            message_colors: %{
+              @debug => faint(),
+              @info  => reset(),
+              @warn  => yellow(),
+              @error => light_red() <> bright()
+            },
+            timestamp_color: faint(),
+            metadata_color:  italic() <> faint(),
+
+            use_ansi_color?: true
+
+          ]
+        },
         #{ Bunyan.Writers.Remote, [ send_to: YourLogger, min_log_level: :warn ] },
       ]
     ]

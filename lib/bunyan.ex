@@ -1,7 +1,15 @@
 defmodule Bunyan do
 
   defmodule Level do
-    @compile { :inline, debug: 0, info: 0, warn: 0, error: 0, of: 1 }
+    @compile { :inline,
+         debug:   0,
+         info:    0,
+         warn:    0,
+         error:   0,
+         of:      1,
+         to_s:    1,
+         to_atom: 1
+    }
 
     def debug, do: 00
     def info,  do: 10
@@ -28,6 +36,11 @@ defmodule Bunyan do
     def to_s(20), do: "W"
     def to_s(30), do: "E"
     def to_s(_),  do: "?"
+
+    def to_atom(00), do: :debug
+    def to_atom(10), do: :info
+    def to_atom(20), do: :warn
+    def to_atom(30), do: :error
   end
 
 end
