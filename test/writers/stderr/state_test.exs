@@ -23,7 +23,7 @@ defmodule Test.Bunyan.Writers.Stderr.State do
     assert result.main_format_string == "main"
     assert result.additional_format_string == "additional"
 
-    output = result.format_function.(0, "", nil, :os.timestamp(), result)
+    output = result.format_function.(Test.Bunyan.Writers.Stderr.Formatter.msg(""))
 
     assert output |> IO.iodata_to_binary() == "main\n     additional\n"
  end
@@ -31,12 +31,12 @@ defmodule Test.Bunyan.Writers.Stderr.State do
  test "top-level colors set" do
   result = State.from_options(
     timestamp_color: "time",
-    metadata_color: "meta",
+    extra_color:     "extra",
     use_ansi_color?: false
   )
 
   assert result.timestamp_color == "time"
-  assert result.metadata_color  == "meta"
+  assert result.extra_color     == "extra"
   assert result.use_ansi_color? == false
  end
 

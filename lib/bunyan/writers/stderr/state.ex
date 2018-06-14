@@ -12,7 +12,7 @@ defmodule Bunyan.Writers.Stderr.State do
 
   defstruct(
     main_format_string:        "$time [$level] $message_first_line",
-    additional_format_string:  "$time [$level] $message_rest\n$metadata",
+    additional_format_string:  "$time [$level] $message_rest\n$extra",
 
     format_function:           nil,
 
@@ -29,7 +29,7 @@ defmodule Bunyan.Writers.Stderr.State do
       @error => light_red() <> bright()
     },
     timestamp_color: faint(),
-    metadata_color:  italic() <> faint(),
+    extra_color:     italic() <> faint(),
 
     use_ansi_color?: true
   )
@@ -39,7 +39,7 @@ defmodule Bunyan.Writers.Stderr.State do
     |> maybe_add(options, :main_format_string)
     |> maybe_add(options, :additional_format_string)
     |> maybe_add(options, :timestamp_color)
-    |> maybe_add(options, :metadata_color)
+    |> maybe_add(options, :extra_color)
     |> maybe_add(options, :use_ansi_color?)
     |> maybe_update_colors(options, :level_colors)
     |> maybe_update_colors(options, :message_colors)
@@ -47,7 +47,13 @@ defmodule Bunyan.Writers.Stderr.State do
   end
 
   def precompile_format_function(options) do
-    %{ options | format_function: Formatter.compile_format(options.main_format_string, options.additional_format_string, options) }
+    function = Formatter.compile_format(
+      options.main_format_string,
+      options.additional_format_string,
+      options
+    )
+
+    %{ options | format_function: function}
   end
 
   def maybe_add(config, options, key) do
@@ -66,10 +72,11 @@ defmodule Bunyan.Writers.Stderr.State do
   def add_specific_colors(config, nil, _), do: config
   def add_specific_colors(config, colors, key) do
     original = Map.get(config, key)
-    updated = [ @debug, @info, @warn, @error ]
-              |> Enum.reduce(original, fn level, updated ->
-                   maybe_add_to_map(updated, level, colors[Level.to_atom(level)])
-             end)
+    updated  =
+       [ @debug, @info, @warn, @error ]
+       |> Enum.reduce(original, fn level, updated ->
+            maybe_add_to_map(updated, level, colors[Level.to_atom(level)])
+          end)
 
     Map.put(config, key, updated)
   end

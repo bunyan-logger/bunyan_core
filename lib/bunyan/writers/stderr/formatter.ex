@@ -13,7 +13,7 @@ defmodule Bunyan.Writers.Stderr.Formatter do
   * `$level`    - the log level
   * `$node`     - the node that prints the message
   * `$pid`      - the pid that generated the messae
-  * `$metadata` - user controlled data presented in `"key=val key2=val2 "` format
+  * `$extra`    - any term. maps and keyword lists are formatted nicely
   """
 
   @ansi_reset IO.ANSI.reset
@@ -25,32 +25,40 @@ defmodule Bunyan.Writers.Stderr.Formatter do
   # this is all compile time, so we try to do as much work here as
   # we can.
 
-  def compile_format(main_format, extra_format, state) do
+  def compile_format(main_format, extra_format, options) do
 
-    is_color?    = !!state.use_ansi_color?
+    is_color?    = !!options.use_ansi_color?
 
     main_format_fields = fields_in(main_format)
 
-    main_message = Enum.map(main_format_fields, &field_builder(&1, is_color?))
+    main_message = Enum.map(main_format_fields, &field_builder(&1, is_color?, options))
     prefix_size  = prefix_size(main_format_fields)
     padding      = String.duplicate(" ", prefix_size)
 
 
     extra_message =
       fields_in(extra_format)
-      |> Enum.map(&field_builder(&1, is_color?))
+      |> Enum.map(&field_builder(&1, is_color?, options))
 
 
     preload = if main_format <> extra_format =~ ~r/\$(date|time)/ do
       quote do
-        { utc_date, utc_time } = :calendar.now_to_universal_time(time)
+        { utc_date, utc_time } = :calendar.now_to_universal_time(timestamp)
       end
     else
       nil
     end
 
     quote do
-      fn (level, msg, metadata, time, state) ->
+      fn (%Bunyan.LogMsg{
+                   level:     level,
+                   msg:       msg,
+                   extra:     extra,
+                   timestamp: timestamp,
+                   pid:       pid,
+                   node:      node
+                 }
+      ) ->
 
         { msg_first_line, msg_rest } = case String.split(msg, ~r/\n/, trim: true, parts: 2) do
           [] ->
@@ -74,17 +82,17 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
   ##################################################################################
 
-  defp field_builder("$date", _ansi = true) do
+  defp field_builder("$date", _ansi = true, options) do
     quote do
       [
-        state.timestamp_color,
+        unquote(options.timestamp_color),
         unquote(__MODULE__).format_date(utc_date),
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$date", _ansi = false) do
+  defp field_builder("$date", _ansi = false, _) do
     quote do
       unquote(__MODULE__).format_date(utc_date)
     end
@@ -92,38 +100,38 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
 
-  defp field_builder("$time", _ansi = true) do
+  defp field_builder("$time", _ansi = true, options) do
     quote do
       [
-        state.timestamp_color,
-        unquote(__MODULE__).format_time(utc_time, time),
+        unquote(options.timestamp_color),
+        unquote(__MODULE__).format_time(utc_time, timestamp),
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$time", _ansi = false) do
+  defp field_builder("$time", _ansi = false, _) do
     quote do
-      unquote(__MODULE__).format_time(utc_time, time)
+      unquote(__MODULE__).format_time(utc_time, timestamp)
     end
   end
 
 
 
 
-  defp field_builder("$datetime", _ansi = true) do
+  defp field_builder("$datetime", _ansi = true, options) do
     quote do
       [
-        state.timestamp_color,
-        "#{unquote(__MODULE__).format_date(utc_date)} #{unquote(__MODULE__).format_time(utc_time, time)}",
+        unquote(options.timestamp_color),
+        "#{unquote(__MODULE__).format_date(utc_date)} #{unquote(__MODULE__).format_time(utc_time, timestamp)}",
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$datetime", _ansi = false) do
+  defp field_builder("$datetime", _ansi = false, _) do
     quote do
-      "#{unquote(__MODULE__).format_date(utc_date)} #{unquote(__MODULE__).format_time(utc_time, time)}"
+      "#{unquote(__MODULE__).format_date(utc_date)} #{unquote(__MODULE__).format_time(utc_time, timestamp)}"
     end
   end
 
@@ -131,17 +139,17 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
 
-  defp field_builder("$message_first_line", _ansi = true) do
+  defp field_builder("$message_first_line", _ansi = true, options) do
     quote do
       [
-        state.message_colors[level],
+        unquote(Macro.escape(options.message_colors))[level],
         msg_first_line,
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$message_first_line", _ansi = false) do
+  defp field_builder("$message_first_line", _ansi = false, _) do
     quote do
       msg_first_line
     end
@@ -149,17 +157,17 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
 
-  defp field_builder("$message_rest", _ansi = true) do
+  defp field_builder("$message_rest", _ansi = true, options) do
     quote do
       [
-        state.message_colors[level],
+        unquote(Macro.escape(options.message_colors))[level],
         msg_rest,
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$message_rest", _ansi = false) do
+  defp field_builder("$message_rest", _ansi = false, _) do
     quote do
       msg_rest
     end
@@ -167,34 +175,34 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
 
-  defp field_builder("$message", _ansi = true) do
+  defp field_builder("$message", _ansi = true, options) do
     quote do
       [
-        state.message_colors[level],
+        unquote(Macro.escape(options.message_colors))[level],
         msg,
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$message", _ansi = false) do
+  defp field_builder("$message", _ansi = false, _) do
     quote do
       msg
     end
   end
 
 
-  defp field_builder("$level", _ansi = true) do
+  defp field_builder("$level", _ansi = true, options) do
     quote do
       [
-        state.level_colors[level],
+        unquote(Macro.escape(options.level_colors))[level],
         Bunyan.Level.to_s(level),
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$level", _ansi = false) do
+  defp field_builder("$level", _ansi = false, _) do
     quote do
       Bunyan.Level.to_s(level)
     end
@@ -202,37 +210,37 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
 
 
-  defp field_builder("$node", _) do
+  defp field_builder("$node", _, _) do
     quote do
       inspect(node)
     end
   end
 
-  defp field_builder("$pid", _) do
+  defp field_builder("$pid", _, _) do
     quote do
       inspect(pid)
     end
   end
 
-  defp field_builder("$metadata", _ansi = true) do
+  defp field_builder("$extra", _ansi = true, options) do
     quote do
       [
-        state.metadata_color,
-        unquote(__MODULE__).format_metadata(metadata),
+        unquote(options.extra_color),
+        unquote(__MODULE__).format_extra(extra),
         unquote(@ansi_reset)
       ]
     end
   end
 
-  defp field_builder("$metadata", _ansi = false) do
+  defp field_builder("$extra", _ansi = false, _) do
     quote do
-      unquote(__MODULE__).format_metadata(metadata)
+      unquote(__MODULE__).format_extra(extra)
     end
   end
 
 
 
-  defp field_builder("$" <> rest, _) do
+  defp field_builder("$" <> rest, _, _) do
     raise """
 
     Unknown Logger format field: $#{rest}
@@ -246,13 +254,13 @@ defmodule Bunyan.Writers.Stderr.Formatter do
       $level    - the log level
       $node     - the node that prints the message
       $pid      - the pid that generated the message
-      $metadata - user controlled data presented in `"key=val key2=val2 "` format
+      $extra    - any term. maps and keyword lists are formatted nicely
 
     """
   end
 
 
-  defp field_builder(text, _) do
+  defp field_builder(text, _, _) do
     quote do
       unquote(text)
     end
@@ -272,7 +280,7 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
   defp field_size("$node"),     do: 15
   defp field_size("$pid"),      do: 12
-  defp field_size("$metadata"), do:  0
+  defp field_size("$extra"),    do:  0
 
   defp field_size(text) when is_binary(text), do: String.length(text)
 
@@ -295,9 +303,9 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     end)
   end
 
-  def format_metadata(nil), do: []
+  def format_extra(nil), do: []
 
-  def format_metadata(data) when is_map(data) do
+  def format_extra(data) when is_map(data) do
     max_key_len= Map.keys(data) |> Enum.map(&inspect/1) |> Enum.map(&String.length/1) |> Enum.max
     key_len = min(max_key_len, 20)
 
@@ -307,11 +315,11 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     |> Enum.join("\n")
   end
 
-  def format_metadata(data) when is_list(data) do
+  def format_extra(data) when is_list(data) do
       Enum.map(data, &format_list_element/1)
   end
 
-  def format_metadata(data) do
+  def format_extra(data) do
       inspect(data)
   end
 

@@ -1,9 +1,19 @@
 defmodule Bunyan.Collector do
 
-  @collector Bunyan.Collector.Server
 
-  def maybe_log(msg = {_level, _msg_or_fun, _meta}) do
-    GenServer.cast(@collector, { :log, msg, self(), node() })
+  alias Bunyan.{Collector.Server, LogMsg}
+
+  def maybe_log({level, msg_or_fun, extra}) do
+    log_msg = %LogMsg{
+      level:     level,
+      msg:       msg_or_fun,     # function is resolved in the server process
+      extra:     extra,
+      timestamp: :os.timestamp(),
+      pid:       self(),
+      node:      node()
+    }
+
+    GenServer.cast(Server, { :log, log_msg })
   end
 
 end

@@ -35,7 +35,7 @@ defmodule Bunyan.MixProject do
         {
           Bunyan.Writers.Stderr, [
             main_format_string:        "$time [$level] $message_first_line",
-            additional_format_string:  "$time [$level] $message_rest\n$metadata",
+            additional_format_string:  "$time [$level] $message_rest\n$extra",
 
             level_colors:   %{
               @debug => faint(),
@@ -50,7 +50,7 @@ defmodule Bunyan.MixProject do
               @error => light_red() <> bright()
             },
             timestamp_color: faint(),
-            metadata_color:  italic() <> faint(),
+            extra_color:     italic() <> faint(),
 
             use_ansi_color?: true
 

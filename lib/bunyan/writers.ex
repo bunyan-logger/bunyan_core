@@ -37,7 +37,7 @@ defmodule Bunyan.Writers do
     DynamicSupervisor.start_child(@me, { writer, opts })
   end
 
-  def log_message(msg = {_level, _msg, _meta, _time, _pid, _node}) do
+  def log_message(msg) do
     notify({:log_message, msg})
   end
 
