@@ -7,7 +7,7 @@ defmodule Bunyan.Application do
     config =  Application.get_all_env(:bunyan)
 
     children = [
-      Bunyan.Writers,
+      Bunyan.Writer,
       Bunyan.Collector.Server,
       { Bunyan.Kickoff, config },
     ]

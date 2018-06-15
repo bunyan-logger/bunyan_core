@@ -1,7 +1,7 @@
-defmodule Bunyan.Writers.Stderr.State do
+defmodule Bunyan.Writer.Stderr.State do
 
   alias Bunyan.Level
-  alias Bunyan.Writers.Stderr.Formatter
+  alias Bunyan.Writer.Stderr.Formatter
 
   @debug Level.of(:debug)
   @info  Level.of(:info)
@@ -12,7 +12,7 @@ defmodule Bunyan.Writers.Stderr.State do
 
   defstruct(
     main_format_string:        "$time [$level] $message_first_line",
-    additional_format_string:  "$time [$level] $message_rest\n$extra",
+    additional_format_string:  "$message_rest\n$extra",
 
     format_function:           nil,
 

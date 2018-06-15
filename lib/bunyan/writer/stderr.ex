@@ -1,8 +1,7 @@
-defmodule Bunyan.Writers.Stderr do
-
-  alias Bunyan.Writers.Stderr.{ Formatter, State }
+defmodule Bunyan.Writer.Stderr do
 
   use GenServer
+  alias __MODULE__.State
 
   def start_link(options) do
     GenServer.start_link(__MODULE__, options)
@@ -13,9 +12,7 @@ defmodule Bunyan.Writers.Stderr do
   end
 
   def handle_cast({ :log_message, msg}, options) do
-    IO.inspect options
-    IO.inspect msg
-    #IO.write(:standard_error, options.format_function(msg, options))
+    IO.write(options.format_function.(msg) |> List.flatten |> Enum.join)
     { :noreply, options }
   end
 end

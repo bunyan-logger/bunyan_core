@@ -24,7 +24,7 @@ defmodule Bunyan.Collector.Server do
   end
 
   defp send_to_writers(msg) do
-    Bunyan.Writers.log_message(msg)
+    Bunyan.Writer.log_message(msg)
   end
 
 

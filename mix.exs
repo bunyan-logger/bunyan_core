@@ -30,12 +30,16 @@ defmodule Bunyan.MixProject do
     [
       name:             MyLogger,
       accept_remote_as: GlobalLogger,
-      min_log_level:    :info,
+      min_log_level:    :debug,
+      read_from:        [
+        Bunyan.Source.Api,
+        Bunyan.Source.ErlangErrorLogger,
+      ],
       write_to:         [
         {
-          Bunyan.Writers.Stderr, [
+          Bunyan.Writer.Stderr, [
             main_format_string:        "$time [$level] $message_first_line",
-            additional_format_string:  "$time [$level] $message_rest\n$extra",
+            additional_format_string:  "$message_rest\n$extra",
 
             level_colors:   %{
               @debug => faint(),

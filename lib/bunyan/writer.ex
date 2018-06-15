@@ -1,9 +1,13 @@
-defmodule Bunyan.Writers do
+defmodule Bunyan.Writer do
 
   @timeout 30_000
   @me __MODULE__
 
   use Supervisor
+
+  def load_all_from_config(writers) do
+    Enum.each(writers, &add_writer/1)
+  end
 
   # stolen from
   # http://blog.plataformatec.com.br/2016/11/replacing-genevent-by-a-supervisor-genserver/

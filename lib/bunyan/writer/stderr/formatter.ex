@@ -1,4 +1,4 @@
-defmodule Bunyan.Writers.Stderr.Formatter do
+defmodule Bunyan.Writer.Stderr.Formatter do
 
   #
 
@@ -315,22 +315,9 @@ defmodule Bunyan.Writers.Stderr.Formatter do
     |> Enum.join("\n")
   end
 
-  def format_extra(data) when is_list(data) do
-      Enum.map(data, &format_list_element/1)
-  end
-
   def format_extra(data) do
-      inspect(data)
+      inspect(data, pretty: true, width: 65)
   end
-
-  defp format_list_element({ key, value }) do
-    "#{inspect key} => #{inspect value}"
-  end
-
-  defp format_list_element(value) do
-    inspect value
-  end
-
 
   def format_date({y, m, d}) do
     "#{y}-#{pad2(m)}-#{pad2(d)}"
@@ -359,6 +346,7 @@ defmodule Bunyan.Writers.Stderr.Formatter do
 
   def indent(extra, padding) do
     extra
+    |> List.flatten
     |> Enum.join("")
     |> String.split(~r/\n/, trim: true)
     |> Enum.map(fn line -> [ padding, line, "\n" ] end)
