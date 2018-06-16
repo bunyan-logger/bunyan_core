@@ -28,14 +28,17 @@ defmodule Bunyan.MixProject do
     import IO.ANSI
 
     [
-      name:             MyLogger,
-      accept_remote_as: GlobalLogger,
-      min_log_level:    :debug,
-      read_from:        [
+      name:                   MyLogger,
+      accept_remote_as:       GlobalLogger,
+
+      runtime_log_level:      :debug,
+      compile_time_log_level: :info,
+
+      read_from:              [
         Bunyan.Source.Api,
         Bunyan.Source.ErlangErrorLogger,
       ],
-      write_to:         [
+      write_to:               [
         {
           Bunyan.Writer.Stderr, [
             main_format_string:        "$time [$level] $message_first_line",

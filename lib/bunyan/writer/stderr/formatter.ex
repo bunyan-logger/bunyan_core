@@ -159,18 +159,28 @@ defmodule Bunyan.Writer.Stderr.Formatter do
 
   defp field_builder("$message_rest", _ansi = true, options) do
     quote do
-      [
-        unquote(Macro.escape(options.message_colors))[level],
-        msg_rest,
-        unquote(@ansi_reset)
-      ]
+      case msg_rest do
+        [] ->
+          ""
+        msg ->
+          [
+            unquote(Macro.escape(options.message_colors))[level],
+            msg,
+            unquote(@ansi_reset)
+          ]
+        end
     end
   end
 
   defp field_builder("$message_rest", _ansi = false, _) do
     quote do
-      msg_rest
-    end
+      case msg_rest do
+        [] ->
+          ""
+        msg ->
+          msg
+        end
+      end
   end
 
 
@@ -224,17 +234,31 @@ defmodule Bunyan.Writer.Stderr.Formatter do
 
   defp field_builder("$extra", _ansi = true, options) do
     quote do
-      [
-        unquote(options.extra_color),
-        unquote(__MODULE__).format_extra(extra),
-        unquote(@ansi_reset)
-      ]
+      case extra do
+        [] ->
+          ""
+        nil ->
+          ""
+        data ->
+          [
+            unquote(options.extra_color),
+            unquote(__MODULE__).format_extra(data),
+            unquote(@ansi_reset)
+          ]
+      end
     end
   end
 
   defp field_builder("$extra", _ansi = false, _) do
     quote do
-      unquote(__MODULE__).format_extra(extra)
+      case extra do
+        [] ->
+          ""
+        nil ->
+          ""
+        data ->
+         unquote(__MODULE__).format_extra(data)
+      end
     end
   end
 
@@ -343,6 +367,9 @@ defmodule Bunyan.Writer.Stderr.Formatter do
   defp pad_millis(n) when n < 100,  do: "0#{n}"
   defp pad_millis(n) when n < 1000, do: "#{n}"
   defp pad_millis(_), do: "***"
+
+  def indent(nil, _), do: ""
+  def indent([],  _), do: ""
 
   def indent(extra, padding) do
     extra

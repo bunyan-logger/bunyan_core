@@ -3,7 +3,7 @@ defmodule Test.Bunyan.Writers.Stderr.State do
   use ExUnit.Case
 
   alias Bunyan.Level
-  alias Bunyan.Writers.Stderr.{ State }
+  alias Bunyan.Writer.Stderr.{ State }
 
   @debug Level.of(:debug)
   @info  Level.of(:info)

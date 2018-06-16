@@ -3,7 +3,7 @@ defmodule Bunyan.Collector do
 
   alias Bunyan.Collector.Server
 
-    def maybe_log(log_msg) do
+   def maybe_log(log_msg) do
     GenServer.cast(Server, { :log, log_msg })
   end
 

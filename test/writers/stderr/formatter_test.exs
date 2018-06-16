@@ -2,7 +2,7 @@ defmodule Test.Bunyan.Writers.Stderr.Formatter do
 
   use ExUnit.Case
 
-  alias Bunyan.Writers.Stderr.{ Formatter, State }
+  alias Bunyan.Writer.Stderr.{ Formatter, State }
 
   @debug Bunyan.Level.of(:debug)
   @info  Bunyan.Level.of(:info)
@@ -10,6 +10,7 @@ defmodule Test.Bunyan.Writers.Stderr.Formatter do
   @error Bunyan.Level.of(:error)
 
   @xmas_seconds (:calendar.datetime_to_gregorian_seconds({{2020, 12, 25}, { 12, 34, 56 }}) - 62167219200)
+
   @xmas { div(@xmas_seconds, 1_000_000), rem(@xmas_seconds, 1_000_000), 123_456 }
 
   @state %State{

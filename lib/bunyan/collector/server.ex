@@ -7,8 +7,8 @@ defmodule Bunyan.Collector.Server do
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
   end
 
-  def init(_options) do
-    { :ok, %State{ } }
+  def init(options) do
+    { :ok, State.from(options) }
   end
 
   def handle_cast({ :log, msg = %{ level: level }}, config) do
