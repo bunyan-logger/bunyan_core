@@ -28,7 +28,7 @@ be any Elixir term: maps are encouraged, as they are formatted nicely.
 
 ## Architecture
 
-<img title="architecture diagram showing sources, collector, and writers" src="./assets/images/basic_architecture.svg">
+<img title="architecture diagram showing sources, collector, and writers" src="./assets/images/overall_architecture.svg">
 
 Bunyan is designed to take logging input from a variety of sources. It
 is distributed with two: an API which provides the functions you can
