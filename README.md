@@ -1,4 +1,4 @@
-<img align="right" width="200" src="./assets/images/beaver_PNG57.png">
+<img align="right" width="200" title="logo: a beaver with an ax (because it's a logger, just like Paul Bunyan)" src="./assets/images/beaver_PNG57.png">
 
 # Bunyan: An Elixir Logger
 
@@ -28,8 +28,7 @@ be any Elixir term: maps are encouraged, as they are formatted nicely.
 
 ## Architecture
 
-![architecture diagram showing sources, collector, and
-writers](./assets/images//basic_architecture.svg)
+<img title="architecture diagram showing sources, collector, and writers" src="./assets/images/basic_architecture.svg">
 
 Bunyan is designed to take logging input from a variety of sources. It
 is distributed with two: an API which provides the functions you can
