@@ -289,21 +289,22 @@ corresponding fields are substituted for the field names.
 
 * `$date`
 
-The date the log message was sent (yy-mm-dd).
+   The date the log message was sent (yy-mm-dd).
 
 * `$time`
 
-The time the log message was sent (hh:mm:ss.mmm). because we'll all big
-girls and boys, this time will be in UTC.
+   The time the log message was sent (hh:mm:ss.mmm). because we'll all big
+   girls and boys, this time will be in UTC.
 
 * `$datetime`
 
-`"$date $time"`
+   `"$date $time"`
 
 * `$message`
-  The whole log message. If the message contains newlines, it will be
-  split, with the second and subsequent lines appearing beneath the
-  first and left-aligned with it.
+
+   The whole log message. If the message contains newlines, it will be
+   split, with the second and subsequent lines appearing beneath the
+   first and left-aligned with it.
 
 * `$msg_first_line`
 
