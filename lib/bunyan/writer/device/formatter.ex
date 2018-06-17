@@ -1,4 +1,4 @@
-defmodule Bunyan.Writer.Stderr.Formatter do
+defmodule Bunyan.Writer.Device.Formatter do
 
   #
 

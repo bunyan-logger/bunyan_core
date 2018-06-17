@@ -1,7 +1,7 @@
-defmodule Bunyan.Writer.Stderr.State do
+defmodule Bunyan.Writer.Device.State do
 
   alias Bunyan.Level
-  alias Bunyan.Writer.Stderr.Formatter
+  alias Bunyan.Writer.Device.Formatter
 
   @debug Level.of(:debug)
   @info  Level.of(:info)

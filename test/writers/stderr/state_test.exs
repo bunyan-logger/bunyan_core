@@ -1,9 +1,9 @@
-defmodule Test.Bunyan.Writers.Stderr.State do
+defmodule Test.Bunyan.Writers.Device.State do
 
   use ExUnit.Case
 
   alias Bunyan.Level
-  alias Bunyan.Writer.Stderr.{ State }
+  alias Bunyan.Writer.Device.{ State }
 
   @debug Level.of(:debug)
   @info  Level.of(:info)
@@ -23,7 +23,7 @@ defmodule Test.Bunyan.Writers.Stderr.State do
     assert result.main_format_string == "main"
     assert result.additional_format_string == "additional"
 
-    output = result.format_function.(Test.Bunyan.Writers.Stderr.Formatter.msg(""))
+    output = result.format_function.(Test.Bunyan.Writers.Device.Formatter.msg(""))
 
     assert output |> IO.iodata_to_binary() == "main\n     additional\n"
  end

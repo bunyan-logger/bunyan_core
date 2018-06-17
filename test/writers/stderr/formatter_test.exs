@@ -1,8 +1,8 @@
-defmodule Test.Bunyan.Writers.Stderr.Formatter do
+defmodule Test.Bunyan.Writers.Device.Formatter do
 
   use ExUnit.Case
 
-  alias Bunyan.Writer.Stderr.{ Formatter, State }
+  alias Bunyan.Writer.Device.{ Formatter, State }
 
   @debug Bunyan.Level.of(:debug)
   @info  Bunyan.Level.of(:info)

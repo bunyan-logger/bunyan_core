@@ -154,7 +154,7 @@ also handles SASL and OTP messages that the error logger forwards.
 
 Bunyan comes with two writers (but you can add your own—see below).
 
-#### Writer: `Bunyan.Writer.Stderr`
+#### Writer: `Bunyan.Writer.Device`
 
 Writes log messages to standard error after formatting them for human
 consumption.
@@ -262,7 +262,7 @@ Used to forward log messages to another instance of Bunyan.
 
 ### Log Message Format Specifications
 
-The `Stderr` writer tries to create nicely formatted output. For
+The `Device` writer tries to create nicely formatted output. For
 example, it will try to indent multi-line messages so the start of the
 text of the message lines up, and it recognizes things such as maps when
 laying out nontext data.
@@ -349,7 +349,7 @@ The configuration options
   ],
   write_to:               [
     {
-      Bunyan.Writer.Stderr, [
+      Bunyan.Writer.Device, [
         main_format_string:        "$time [$level] $message_first_line",
         additional_format_string:  "$message_rest\n$extra",
 

@@ -43,7 +43,7 @@ defmodule Bunyan.MixProject do
 
       write_to: [
         {
-          Bunyan.Writer.Stderr, [
+          Bunyan.Writer.Device, [
             main_format_string:       "$time [$level] $message_first_line",
             additional_format_string: "$message_rest\n$extra",
 

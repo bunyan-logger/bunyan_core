@@ -1,11 +1,11 @@
-defmodule Bunyan.Writer.Stderr do
+defmodule Bunyan.Writer.Device do
 
   @moduledoc """
-  Write log messages to STDERR. We operate as a separate process to
-  allow the rest to continue asynchronously.
+  Write log messages to an IO device. We operate as a separate process
+  to allow the rest to continue asynchronously.
   """
 
-  # TODO should we write to USER?
+  # TODO update to store device
 
   use GenServer
   alias __MODULE__.State
