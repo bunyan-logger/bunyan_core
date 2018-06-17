@@ -1,5 +1,8 @@
 
 defmodule Bunyan.Level do
+
+  @type t :: ( :debug | :info | :warn | :error )
+
   @compile { :inline,
         debug:   0,
         info:    0,

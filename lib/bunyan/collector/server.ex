@@ -11,11 +11,8 @@ defmodule Bunyan.Collector.Server do
     { :ok, State.from(options) }
   end
 
-  def handle_cast({ :log, msg = %{ level: level }}, config) do
-    if level >= config.minimum_level_to_report do
-      send_to_writers(msg)
-    end
-
+  def handle_cast({ :log, msg }, config) do
+    send_to_writers(msg)
     { :noreply, config }
   end
 

@@ -75,7 +75,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.EventHandler do
       timestamp: :os.timestamp(),
       pid:       pid,
       node:      node(pid)
-    } |> Collector.maybe_log()
+    } |> Collector.log()
   end
 
   def log(level, _gl, pid, format, data) do
@@ -92,6 +92,6 @@ defmodule Bunyan.Source.ErlangErrorLogger.EventHandler do
       pid:       pid,
       node:      node(pid)
     }
-    |> Collector.maybe_log()
+    |> Collector.log()
   end
 end

@@ -51,7 +51,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
       timestamp: :os.timestamp(),
       pid:       pid,
       node:      node(pid)
-    } |> Collector.maybe_report()
+    } |> Collector.report()
   end
 
 

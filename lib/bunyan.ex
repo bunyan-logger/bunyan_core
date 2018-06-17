@@ -9,28 +9,36 @@ defmodule Bunyan do
 
 
   def compile_time_log_level() do
-    Application.get_env(:bunyan, :compile_time_log_level)
+    with sources when is_list(sources) <- Application.get_env(:bunyan, :sources),
+         api     when is_list(api)     <- sources[Bunyan.Source.Api],
+         level                         =  api[:compile_time_log_level]
+    do
+      level
+    else
+      _ ->
+      :debug
+    end
   end
 
   def compile_time_log_level_number() do
     Level.of(compile_time_log_level())
   end
 
-  def runtime_log_level() do
-    Application.get_env(:bunyan, :runtime_log_level)
-  end
+  # def runtime_log_level() do
+  #   Application.get_env(:bunyan, :runtime_log_level)
+  # end
 
-  def runtime_log_level_number() do
-    Level.of(runtime_log_level())
-  end
+  # def runtime_log_level_number() do
+  #   Level.of(runtime_log_level())
+  # end
 
 
-  def set_runtime_level(level) when level in [ :debug, :info, :warn, :error ] do
-    Application.put_env(:bunyan, :runtime_log_level, Level.of(level))
-  end
+  # def set_runtime_level(level) when level in [ :debug, :info, :warn, :error ] do
+  #   Application.put_env(:bunyan, :runtime_log_level, Level.of(level))
+  # end
 
   defp maybe_generate(level, msg_or_fun, extra) do
-    if level_not_less_than?(level) do
+    if compile_time_level_not_less_than?(level) do
       quote do
         Bunyan.Source.Api.unquote(level)(unquote(msg_or_fun), unquote(extra))
       end
@@ -41,7 +49,7 @@ defmodule Bunyan do
     end
   end
 
-  defp level_not_less_than?(target) do
-    runtime_log_level_number() <= Level.of(target)
+  defp compile_time_level_not_less_than?(target) do
+    compile_time_log_level_number() <= Level.of(target)
   end
 end

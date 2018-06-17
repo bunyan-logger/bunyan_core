@@ -31,18 +31,23 @@ defmodule Bunyan.MixProject do
       name:                   MyLogger,
       accept_remote_as:       GlobalLogger,
 
-      runtime_log_level:      :debug,
-      compile_time_log_level: :info,
-
-      read_from:              [
-        Bunyan.Source.Api,
+      read_from: [
+        {
+          Bunyan.Source.Api, [
+            runtime_log_level:        :debug,
+            compile_time_log_level:   :info,
+          ]
+        },
         Bunyan.Source.ErlangErrorLogger,
       ],
-      write_to:               [
+
+      write_to: [
         {
           Bunyan.Writer.Stderr, [
-            main_format_string:        "$time [$level] $message_first_line",
-            additional_format_string:  "$message_rest\n$extra",
+            main_format_string:       "$time [$level] $message_first_line",
+            additional_format_string: "$message_rest\n$extra",
+
+            runtime_log_level:        :debug,
 
             level_colors:   %{
               @debug => faint(),
@@ -60,7 +65,6 @@ defmodule Bunyan.MixProject do
             extra_color:     italic() <> faint(),
 
             use_ansi_color?: true
-
           ]
         },
         #{ Bunyan.Writers.Remote, [ send_to: YourLogger, min_log_level: :warn ] },

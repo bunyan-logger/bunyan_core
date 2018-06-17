@@ -1,14 +1,9 @@
 defmodule Bunyan.Collector.State do
 
 
-  defstruct(
-    minimum_level_to_report: :not_yet_set
-  )
-
-
+  # at some point we'll need collector options, and writing this makes
+  # it parallel to the other genservers
   def from(_options) do
-    %__MODULE__{
-      minimum_level_to_report: Bunyan.runtime_log_level_number()
-    }
+    %{}
   end
 end

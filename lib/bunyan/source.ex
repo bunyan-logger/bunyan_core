@@ -18,6 +18,6 @@ defmodule Bunyan.Source do
   end
 
   def start_source({ source, options }) do
-    apply(source, :initialize_source, options)
+    apply(source, :initialize_source, [ options ])
   end
 end
