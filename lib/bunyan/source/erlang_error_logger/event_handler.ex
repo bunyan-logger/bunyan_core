@@ -9,7 +9,6 @@ defmodule Bunyan.Source.ErlangErrorLogger.EventHandler do
   end
 
   def handle_event(msg, state) do
-    # IO.inspect ERROR: msg
     { :ok, error_log(msg, state) }
   end
 
@@ -66,32 +65,37 @@ defmodule Bunyan.Source.ErlangErrorLogger.EventHandler do
 
 
   def log(level, _gl, pid, format, data) when is_list(data) do
-    msg = :io_lib.format(format, data) |> List.flatten() |> List.to_string() |> String.trim_trailing()
+    cond do
+      true ->
+        msg_text = :io_lib.format(format, data)
+                  |> List.flatten()
+                  |> List.to_string()
+                  |> String.trim_trailing()
 
+        do_log(level, pid, msg_text, data)
+    end
+  end
+
+  def log(level, _gl, pid, format, data) do
+    msg = """
+    bad data for format in `:error_logger.#{level}_msg(. . .):
+    * list expected for 2nd parameter
+    * see below for actual format string and data passed
+    """
+
+    do_log(level, pid, msg, %{ format: format, data: data })
+  end
+
+  # general fall-back handler
+  def do_log(level, pid, msg_text, extra) do
     %LogMsg{
       level:     Level.of(level),
-      msg:       msg,
-      extra:     "(Erlang error report)",
+      msg:       msg_text,
+      extra:     extra,
       timestamp: :os.timestamp(),
       pid:       pid,
       node:      node(pid)
     } |> Collector.log()
   end
 
-  def log(level, _gl, pid, format, data) do
-    msg = """
-    bad data for format in `:error_logger.#{level}_msg(#{inspect format}, #{inspect data}):
-    list expected for 2nd parameter
-    (Erlang error report)
-    """
-
-    %LogMsg{
-      level:     Level.of(level),
-      msg:       msg,
-      timestamp: :os.timestamp(),
-      pid:       pid,
-      node:      node(pid)
-    }
-    |> Collector.log()
-  end
 end

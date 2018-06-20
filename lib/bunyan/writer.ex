@@ -42,12 +42,8 @@ defmodule Bunyan.Writer do
   end
 
   def log_message(msg) do
-    notify({:log_message, msg})
-  end
-
-  defp notify(msg = { _function, __log_message }) do
-    for {_, pid, _, _} <- DynamicSupervisor.which_children(@me) do
-      GenServer.cast(pid, msg)
+    for { _, pid, _, _ } <- DynamicSupervisor.which_children(@me) do
+      GenServer.cast(pid, { :log_message, msg })
     end
     :ok
   end

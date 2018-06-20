@@ -3,29 +3,29 @@ defmodule Bunyan.Kickoff do
   use GenServer
 
 
-  def start_link(options) do
-    GenServer.start_link(__MODULE__, options)
+  def start_link(config) do
+    GenServer.start_link(__MODULE__, config)
   end
 
-  def init(options) do
+  def init(config) do
     Process.send_after(self(), :kickoff, 0)
-    { :ok, options }
+    { :ok, config }
   end
 
-  def handle_info(:kickoff, options) do
-    start_writers(options)
-    start_sources(options)
+  def handle_info(:kickoff, config) do
+    start_writers(config)
+    start_sources(config)
 
-    { :noreply, options }
+    { :noreply, config }
   end
 
-  defp start_writers(options) do
-    Keyword.get(options, :write_to, [])
+  defp start_writers(config) do
+    Keyword.get(config, :write_to, [])
     |> Bunyan.Writer.load_all_from_config()
   end
 
-  defp start_sources(options) do
-    Keyword.get(options, :read_from, [])
+  defp start_sources(config) do
+    Keyword.get(config, :read_from, [])
     |> Bunyan.Source.load_all_from_config()
   end
 

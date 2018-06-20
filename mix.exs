@@ -44,10 +44,17 @@ defmodule Bunyan.MixProject do
       write_to: [
         {
           Bunyan.Writer.Device, [
+
+            name:               Bunyan.Writer.Device,
+            device:             :user,
+            device_pid:         :user,
+
+            pid_file_name:      nil,
+
+            runtime_log_level:  :debug,
+
             main_format_string:       "$time [$level] $message_first_line",
             additional_format_string: "$message_rest\n$extra",
-
-            runtime_log_level:        :debug,
 
             level_colors:   %{
               @debug => faint(),

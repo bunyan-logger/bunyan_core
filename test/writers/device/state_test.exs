@@ -23,7 +23,7 @@ defmodule Test.Bunyan.Writers.Device.State do
     assert result.main_format_string == "main"
     assert result.additional_format_string == "additional"
 
-    output = result.format_function.(Test.Bunyan.Writers.Device.Formatter.msg(""))
+    output = result.format_function.(TestHelpers.msg(""))
 
     assert output |> IO.iodata_to_binary() == "main\n     additional\n"
  end

@@ -1,4 +1,4 @@
-defmodule Test.Bunyan.Writers.Device.Formatter do
+defmodule Test.Bunyan.Writer.Device.Formatter do
 
   use ExUnit.Case
 
@@ -9,25 +9,12 @@ defmodule Test.Bunyan.Writers.Device.Formatter do
   @warn Bunyan.Level.of(:warn)
   @error Bunyan.Level.of(:error)
 
-  @xmas_seconds (:calendar.datetime_to_gregorian_seconds({{2020, 12, 25}, { 12, 34, 56 }}) - 62167219200)
-
-  @xmas { div(@xmas_seconds, 1_000_000), rem(@xmas_seconds, 1_000_000), 123_456 }
 
   @state %State{
     use_ansi_color?: false
   }
 
-
-  def msg(level \\ @debug, msg, extra  \\ nil, timestamp \\ @xmas, pid \\ :a_pid, node \\ :a_node) do
-    %Bunyan.LogMsg{
-      level:     level,
-      msg:       msg,
-      extra:     extra,
-      timestamp: timestamp,
-      pid:       pid,
-      node:      node
-    }
-  end
+  import TestHelpers
 
   test "The format compiler returns a function" do
     result = Formatter.compile_format("first", "extra", @state)

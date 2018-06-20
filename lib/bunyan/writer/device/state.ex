@@ -1,7 +1,7 @@
 defmodule Bunyan.Writer.Device.State do
 
   alias Bunyan.Level
-  alias Bunyan.Writer.Device.Formatter
+  alias Bunyan.Writer.Device.{ Formatter, Impl }
 
   @debug Level.of(:debug)
   @info  Level.of(:info)
@@ -11,6 +11,16 @@ defmodule Bunyan.Writer.Device.State do
   import IO.ANSI
 
   defstruct(
+    # `name` is the name or pid of this partiular device gen_server.
+    # `device_pid` (below) is the pid of the corresponding I/O handled.
+
+    name:          Bunyan.Writer.Device,
+
+    device:        :user,          # a pid, a named process (eg :user), or a filename
+    device_pid:    :user,          # the opened device
+
+    pid_file_name: nil,
+
     main_format_string:        "$time [$level] $message_first_line",
     additional_format_string:  "$message_rest\n$extra",
 
@@ -28,21 +38,28 @@ defmodule Bunyan.Writer.Device.State do
       @warn  => yellow(),
       @error => light_red() <> bright()
     },
+
     timestamp_color: faint(),
     extra_color:     italic() <> faint(),
 
-    use_ansi_color?: true
+    user_wants_color?: true,      # this is the user option
+    use_ansi_color?:   true       # and this is (user_wants_color? && device supports it)
   )
 
-  def from_options(options) do
-    %__MODULE__{}
-    |> maybe_add(options, :main_format_string)
-    |> maybe_add(options, :additional_format_string)
-    |> maybe_add(options, :timestamp_color)
-    |> maybe_add(options, :extra_color)
-    |> maybe_add(options, :use_ansi_color?)
-    |> maybe_update_colors(options, :level_colors)
-    |> maybe_update_colors(options, :message_colors)
+  def from_options(user_options, base \\ %__MODULE__{}) do
+    options = base
+              |> maybe_add(user_options, :name)
+              |> maybe_add(user_options, :device)
+              |> maybe_add(user_options, :pid_file_name)
+              |> maybe_add(user_options, :main_format_string)
+              |> maybe_add(user_options, :additional_format_string)
+              |> maybe_add(user_options, :timestamp_color)
+              |> maybe_add(user_options, :extra_color)
+              |> maybe_add(user_options, :use_ansi_color?, :user_wants_color?)
+              |> maybe_update_colors(user_options, :level_colors)
+              |> maybe_update_colors(user_options, :message_colors)
+
+    Impl.set_log_device(options, options.device)
     |> precompile_format_function()
   end
 
@@ -56,12 +73,12 @@ defmodule Bunyan.Writer.Device.State do
     %{ options | format_function: function}
   end
 
-  def maybe_add(config, options, key) do
+  def maybe_add(config, options, key, internal_key \\ nil) do
     case options[key] do
       nil ->
         config
       value ->
-        Map.put(config, key, value)
+        Map.put(config, internal_key || key , value)
     end
   end
 

@@ -8,6 +8,10 @@ defmodule Bunyan do
   defmacro error(msg_or_fun, extra \\ nil), do: maybe_generate(:error, msg_or_fun, extra)
 
 
+
+  # yes, this breaks the encapsulation of the API config, but I can't
+  # see another way to do this at compile time
+
   def compile_time_log_level() do
     with sources when is_list(sources) <- Application.get_env(:bunyan, :sources),
          api     when is_list(api)     <- sources[Bunyan.Source.Api],
@@ -15,8 +19,7 @@ defmodule Bunyan do
     do
       level
     else
-      _ ->
-      :debug
+      _ -> :debug
     end
   end
 
@@ -38,13 +41,14 @@ defmodule Bunyan do
   # end
 
   defp maybe_generate(level, msg_or_fun, extra) do
+
     if compile_time_level_not_less_than?(level) do
       quote do
         Bunyan.Source.Api.unquote(level)(unquote(msg_or_fun), unquote(extra))
       end
     else
       quote do
-        _ = { unquote(msg_or_fun), unquote(extra) }
+        _avoid_warning_about_unused_variables = fn -> { unquote(msg_or_fun), unquote(extra) } end
       end
     end
   end

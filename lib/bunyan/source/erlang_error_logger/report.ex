@@ -11,9 +11,14 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
        started: rest
      ])
   do
-    msg = "#{rest[:child_type]} #{rest[:id]} started by #{format_supervisor(supervisor)} as #{inspect rest[:pid]}"
+    msg = "#{rest[:child_type]} #{format_module(rest[:id])} started by #{format_supervisor(supervisor)} as #{inspect rest[:pid]}"
     log(level, pid, msg, info)
   end
+
+  def report(level, pid, :progress, info = [ application: app, started_at: node ]) do
+    log(level, pid, "Application #{app} started #{format_node(node)}", info)
+  end
+
 
   ### Crash report
 
@@ -23,7 +28,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
     #{format_initial_call(info[:error_info], info[:initial_call])}
     #{format_error_info(info[:error_info])}
     """
-    log(level, pid, msg, info)
+    log(level, pid, "wombat", info)
   end
 
 
@@ -39,7 +44,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
 
   def report(level, pid, type, report) do
     #IO.inspect report: { level, pid, type, report }
-    log(level, pid, inspect(type), report)
+    log(level, pid, inspect(type), [ wibble: report ])
   end
 
 
@@ -59,7 +64,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
     "#{type} in #{m}.#{f}/#{length a_list}"
   end
 
-  defp format_supervisor({ _pid, name }), do: name
+  defp format_supervisor({ _pid, name }), do: format_module(name)
   defp format_supervisor(pid),            do: inspect(pid)
 
   defp format_error_info(nil), do: "no error info available"
@@ -113,5 +118,8 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
 
   defp format_module("Elixir." <> module), do: module
   defp format_module(module),              do: ":#{module}"
+
+  defp format_node(:"nonode@nohost"), do: "locally"
+  defp format_node(node),             do: "on node #{node}"
 
 end

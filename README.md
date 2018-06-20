@@ -7,8 +7,14 @@
   other nodes)
 * humane formatting of multi-line messages (including error_logger and
   SASL)
+* supports per-source and per-writer configuration, and the ability to
+  log to multiple files and devices
+* works with logrotate (send it a `SIGHUP` and it will close and reopen
+  the log file).
 
 ## Summary
+
+### Summary of the Summary
 
 ~~~ elixir
 { :bunyan, ">= 0.0.0" }
@@ -25,6 +31,25 @@ Bunyan.info "message or function", «extra»
 
 Message can have embedded newlines, which will be honored. `«extra»` can
 be any Elixir term: maps are encouraged, as they are formatted nicely.
+
+### API Overview
+
+#### Logging Functions
+
+You must `require Bunyan` before using any of these four functions.
+
+* `Bunyan.debug(msg_or_fun, extra \\ nil)`
+* `Bunyan.info(msg_or_fun, extra \\ nil)`
+* `Bunyan.warn(msg_or_fun, extra \\ nil)`
+* `Bunyan.error(msg_or_fun, extra \\ nil)`
+
+#### Runtime Configuration
+
+*
+
+
+
+
 
 ## Architecture
 
@@ -159,6 +184,31 @@ Bunyan comes with two writers (but you can add your own—see below).
 Writes log messages to standard error after formatting them for human
 consumption.
 
+* `name:`
+
+   The OTP name associated with this device. Set this if you want to run
+   multiple device writers, as each must have a distinct name. You'll
+   also need to specify this if you want to set device-specific options
+   in your code (as the name is used to identify which device to
+   update).
+
+* `device:`
+
+   This writer will send messages to the specified device. This is
+   either the name of an IO handler (such as `:user` or
+   `:standard_error`) or a string containing a file name. It would be
+   produce to make this filename an absolue path.
+
+   Defaults to `:user`
+
+* `pid_file_name:`
+
+   If the log device is a file on disk, and if this option is set to the
+   name of a pid file, the operating system pid of the writer will
+   be stored in the pid file. This allows utilities such as
+   [logrotate][1] to send a USR1 signal to the writer, which will cause
+   the writer to close and reopen the log file.
+
 * `runtime_log_level:` _:debug_, _:info_, _:warn_, or _:error_
 
    Only calls to the corresponding API functions at or above this level
@@ -224,7 +274,7 @@ consumption.
   If falsy, the various color attributes will be ignored, and the log
   messages will not be colored.
 
-  Defaults to `true` is writing to a console, `false` otherwise.
+  Defaults to `true` if writing to a console, `false` otherwise.
 
 #### Writer:  Bunyan.Writers.Remote
 
@@ -382,3 +432,5 @@ The configuration options
 I needed a distributed logger as part of the Toyland project, and
 couldn't find what I needed. I also wanted something more decoupled than
 the available options.
+
+[1]: https://linux.die.net/man/8/logrotate
