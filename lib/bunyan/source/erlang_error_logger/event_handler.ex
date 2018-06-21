@@ -2,7 +2,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.EventHandler do
 
   @behaviour :gen_event
 
-  alias Bunyan.{ Collector, Level, LogMsg, Source.ErlangErrorLogger.Report }
+  alias Bunyan.{ Collector, Shared.Level, Shared.LogMsg, Source.ErlangErrorLogger.Report }
 
   def init(args) do
     { :ok, args }

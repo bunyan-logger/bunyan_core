@@ -4,7 +4,7 @@ defmodule Bunyan.Source.Api do
 
   use GenServer
 
-  alias Bunyan.{ Collector, Level, LogMsg }
+  alias Bunyan.{ Collector, Shared.Level, Shared.LogMsg }
 
   @compile { :inline, log: 3 }
 

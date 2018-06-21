@@ -54,7 +54,7 @@ defmodule Bunyan.Writers.Remote.Impl do
   end
 
   defp extract_min_log_level(result, level) do
-    %{ result | min_log_level: Bunyan.Level.of(level) }
+    %{ result | min_log_level: Bunyan.Shared.Level.of(level) }
   end
 
   defp remote_logger_not_found(name) do

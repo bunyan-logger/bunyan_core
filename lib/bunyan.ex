@@ -1,6 +1,6 @@
 defmodule Bunyan do
 
-  alias Bunyan.Level
+  alias Bunyan.Shared.Level
 
   defmacro debug(msg_or_fun, extra \\ nil), do: maybe_generate(:debug, msg_or_fun, extra)
   defmacro  info(msg_or_fun, extra \\ nil), do: maybe_generate(:info,  msg_or_fun, extra)

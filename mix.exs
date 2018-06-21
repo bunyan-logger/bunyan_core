@@ -6,7 +6,7 @@ defmodule Bunyan.MixProject do
       app:     :bunyan,
       version: "0.1.0",
       elixir:  "~> 1.6",
-      deps:    [ ],
+      deps:    deps(),
       start_permanent: Mix.env() == :prod,
     ]
   end
@@ -16,6 +16,13 @@ defmodule Bunyan.MixProject do
     [
       mod: {Bunyan.Application, []},
       env: env(),
+    ]
+  end
+
+  defp deps() do
+    [
+      { :bunyan_shared,        path: "../bunyan_shared" },
+      { :bunyan_writer_device, path: "../bunyan_writer_device" },
     ]
   end
 

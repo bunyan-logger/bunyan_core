@@ -1,7 +1,7 @@
 defmodule Bunyan.Source.ErlangErrorLogger.Report do
 
 
-  alias Bunyan.{ Collector, Level, LogMsg }
+  alias Bunyan.{ Collector, Shared.Level, Shared.LogMsg }
 
   # SASL special cases
 
@@ -28,7 +28,7 @@ defmodule Bunyan.Source.ErlangErrorLogger.Report do
     #{format_initial_call(info[:error_info], info[:initial_call])}
     #{format_error_info(info[:error_info])}
     """
-    log(level, pid, "wombat", info)
+    log(level, pid, msg, info)
   end
 
 
