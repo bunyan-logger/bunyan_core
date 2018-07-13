@@ -1,37 +1,32 @@
 defmodule Bunyan.Writer do
 
-  @timeout 30_000
   @me __MODULE__
 
-  use Supervisor
+  use DynamicSupervisor
 
   def load_all_from_config(writers) do
-    Enum.each(writers, &add_writer/1)
+    writers
+    |> Enum.each(&add_writer/1)
   end
 
-  # stolen from
-  # http://blog.plataformatec.com.br/2016/11/replacing-genevent-by-a-supervisor-genserver/
 
   def start_link(params) do
-    children = [
-      {
-        DynamicSupervisor,
-        name:      @me,
-        strategy: :one_for_one,
-        extra_arguments: params
-      }
-    ]
-
-    { :ok, _stuff } = Supervisor.start_link(children, strategy: :one_for_one)
+    { :ok, _stuff } = DynamicSupervisor.start_link(__MODULE__, params, name: @me)
   end
 
+  def init(_args) do
+    DynamicSupervisor.init(
+      strategy: :one_for_one
+    )
 
-  def stop() do
-    for {_, pid, _, _} <- Supervisor.which_children(@me) do
-      GenServer.stop(pid, :normal, @timeout)
-    end
-    Supervisor.stop(@me)
   end
+
+  # def stop() do
+  #   for {_, pid, _, _} <- Supervisor.which_children(@me) do
+  #     GenServer.stop(pid, :normal, @timeout)
+  #   end
+  #   Supervisor.stop(@me)
+  # end
 
   def add_writer(writer) when is_atom(writer) do
     add_writer({writer, []})
@@ -48,11 +43,4 @@ defmodule Bunyan.Writer do
     :ok
   end
 
-  def handle_info(:start_writers, state) do
-    raise inspect {:info, state}
-  end
-
-  def init(args) do
-    raise inspect args
-  end
 end

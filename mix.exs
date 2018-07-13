@@ -6,83 +6,30 @@ defmodule Bunyan.MixProject do
       app:     :bunyan,
       version: "0.1.0",
       elixir:  "~> 1.6",
-      deps:    deps(),
+      deps:    deps(System.get_env("BUNYAN_DEVELOPER")),
       start_permanent: Mix.env() == :prod,
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Bunyan.Application, []},
-      env: env(),
+      mod: {
+        Bunyan.Application, []
+      },
     ]
   end
 
-  defp deps() do
+  # not a Bunyan developer, so use hex
+  defp deps(nil) do
+        [
+          bunyan_shared: "~> 0.0.0",
+        ]
+      end
+
+  # otherwise use path dependencies
+  defp deps(_) do
     [
-      { :bunyan_shared,        path: "../bunyan_shared" },
-      { :bunyan_writer_device, path: "../bunyan_writer_device" },
-    ]
-  end
-
-  @debug  0
-  @info  10
-  @warn  20
-  @error 30
-
-  defp env() do
-    import IO.ANSI
-
-    [
-      name:                   MyLogger,
-      accept_remote_as:       GlobalLogger,
-
-      read_from: [
-        {
-          Bunyan.Source.Api, [
-            runtime_log_level:        :debug,
-            compile_time_log_level:   :info,
-          ]
-        },
-        Bunyan.Source.ErlangErrorLogger,
-      ],
-
-      write_to: [
-        {
-          Bunyan.Writer.Device, [
-
-            name:               Bunyan.Writer.Device,
-            device:             :user,
-            device_pid:         :user,
-
-            pid_file_name:      nil,
-
-            runtime_log_level:  :debug,
-
-            main_format_string:       "$time [$level] $message_first_line",
-            additional_format_string: "$message_rest\n$extra",
-
-            level_colors:   %{
-              @debug => faint(),
-              @info  => green(),
-              @warn  => yellow(),
-              @error => light_red() <> bright()
-            },
-            message_colors: %{
-              @debug => faint(),
-              @info  => reset(),
-              @warn  => yellow(),
-              @error => light_red() <> bright()
-            },
-            timestamp_color: faint(),
-            extra_color:     italic() <> faint(),
-
-            use_ansi_color?: true
-          ]
-        },
-        #{ Bunyan.Writers.Remote, [ send_to: YourLogger, min_log_level: :warn ] },
-      ]
+      { :bunyan_shared, path: "../bunyan_shared" },
     ]
   end
 end

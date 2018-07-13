@@ -9,6 +9,7 @@ defmodule Bunyan.Application do
     children = [
       Bunyan.Writer,
       Bunyan.Collector.Server,
+      Bunyan.Source,
       { Bunyan.Kickoff, config },
     ]
 

@@ -12,8 +12,25 @@ defmodule Bunyan.Collector.Server do
   end
 
   def handle_cast({ :log, msg }, config) do
-    send_to_writers(msg)
+    maybe_demux_messages(msg)
     { :noreply, config }
+  end
+
+  def handle_cast(other, config) do
+    IO.puts "unexpected cast to Collector"
+    IO.inspect cast: other
+    IO.inspect cast: config
+    :erlang.halt
+  end
+
+
+  defp maybe_demux_messages(msgs) when is_list(msgs) do
+    msgs
+    |> Enum.each(&send_to_writers/1)
+  end
+
+  defp maybe_demux_messages(msg) do
+    send_to_writers(msg)
   end
 
   defp send_to_writers(msg = %{ msg: fun }) when is_function(fun) do

@@ -25,8 +25,9 @@ defmodule Bunyan.Kickoff do
   end
 
   defp start_sources(config) do
-    Keyword.get(config, :read_from, [])
-    |> Bunyan.Source.load_all_from_config()
+    config
+    |> Keyword.get(:read_from, [])
+    |> Bunyan.Source.load_all_from_config(Bunyan.Collector.Server)
   end
 
 end

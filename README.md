@@ -3,12 +3,21 @@
 # Bunyan: An Elixir Logger
 
 * easily extended with additional data sources and writers
+
 * can be networked (with one or more nodes also collecting messages from
   other nodes)
+
+* should be performant, as it
+  * bypasses the implicit serialization of the event based approach,
+  * uses broadcasts where a appriopriate, and
+  * uses iolists to construct messages
+
 * humane formatting of multi-line messages (including error_logger and
   SASL)
+
 * supports per-source and per-writer configuration, and the ability to
   log to multiple files and devices
+
 * works with logrotate (send it a `SIGHUP` and it will close and reopen
   the log file).
 
@@ -39,36 +48,53 @@ be any Elixir term: maps are encouraged, as they are formatted nicely.
 You must `require Bunyan` before using any of these four functions.
 
 * `Bunyan.debug(msg_or_fun, extra \\ nil)`
-* `Bunyan.info(msg_or_fun, extra \\ nil)`
-* `Bunyan.warn(msg_or_fun, extra \\ nil)`
+* `Bunyan.info(msg_or_fun,  extra \\ nil)`
+* `Bunyan.warn(msg_or_fun,  extra \\ nil)`
 * `Bunyan.error(msg_or_fun, extra \\ nil)`
+
+If the first parameter is a function, it will only be invoked if the
+source log level is at or below the level of the message being
+generated.
+
+The second parameter is optional Elixir term. It will be displayed
+beneath the main text of the message. If it is a map, it will be shown
+in a tabular structure.
+
 
 #### Runtime Configuration
 
-*
-
-
-
+* tba
 
 
 ## Architecture
 
 <img title="architecture diagram showing sources, collector, and writers" src="./assets/images/overall_architecture.png">
 
-Bunyan is designed to take logging input from a variety of sources. It
-is distributed with two: an API which provides the functions you can
-call in your application, and an Erlang error handler which intercepts,
-reformats, and injects Erlang and OTP errors.
+Bunyan takes logging input from a variety of sources. It is distributed
+with three:
+
+* an API which provides the functions you can call in your application,
+* an Erlang error handler which intercepts, reformats, and injects
+  Erlang and OTP errors, and
+* a source that can accept log messages from other instances of this
+  logger (which we call remote logging)
+
+These sources are all plugins: you have to add them as dependencies (or
+use the batteries-included hex package) if you want to use them.
 
 The sources send log messages to the collector. This in turn forwards
 the messages to the various log writers. Two writers come as standard:
-one writes to standard error (or a file on disk), and the other writes
-to a remote instance of Bunyan.
+
+* one writes to standard error (or a file on disk);
+* the other writes to a remote instance of Bunyan.
+
+Again, these are both optional.
 
 You can configure multiple instances of each type of writer. This would
 allow you to (for example) log everything to standard error, errors only
 to a log file, and warnings and errors to two separate remote loggers.
 
+You can easily add new sources and new writers to Bunyan.
 
 ## Log Levels
 
@@ -76,33 +102,25 @@ The log levels are `debug`, `info`, `warn`, and `error`, with `debug`
 being the lowest and `error` the highest.
 
 You can set log levels indpendently for each of the sources and each of
-the writers. Only messages at or above the specified level will be
-logged.
+the writers.
 
 The level set on a source determines which messages are sent on to the
 writters. The level set on a writer determines which messages get
 written.
 
 In addition, the API source has an additional option to set the compile
-time log level. Calls to logging functions will not be compiled if
-they are below this level.
+time log level. Calls to logging functions will not be compiled into
+your code if they are below this level.
 
 ## Configuration
 
 Configuration can be specified in the regular `config.xxx` files. Much
 of it can also be set at runtime using the `Bunyan.config` function.
 
-
 The top level configuration looks like this:
-
 
 ~~~ elixir
 [
-  accept_remote_as:       GlobalLogger,
-
-  runtime_log_level:      :debug,
-  compile_time_log_level: :info,
-
   read_from: [
     «list of sources»
   ],
@@ -111,12 +129,6 @@ The top level configuration looks like this:
   ]
 ]
 ~~~
-
-* `accept_remote_as:`
-
-   If specified, this is the name that remote loggers will use to
-   connect to (and send messages via) this logger. If not set (the
-   default), this logger cannot be connected to.
 
 * `read_from:`
 
@@ -132,10 +144,10 @@ The top level configuration looks like this:
 Each source configuration entry can be either a module name, or a tuple
 containing a module name and a keyword list of options:
 
-`Bunyan.Source.API` _or_ `{ Bunyan.Source.API, compile_time_log_level::info }`
+`Bunyan.Source.API` _or_
+`{ Bunyan.Source.API, compile_time_log_level: :info }`
 
-Bunyan comes with two source modules. Each has their own configuration.
-(You can add your own source module—see below for details)
+Each source module has its own set of configuration options.
 
 #### Source: `Bunyan.Source.API`
 
@@ -204,10 +216,10 @@ consumption.
 * `pid_file_name:`
 
    If the log device is a file on disk, and if this option is set to the
-   name of a pid file, the operating system pid of the writer will
-   be stored in the pid file. This allows utilities such as
-   [logrotate][1] to send a USR1 signal to the writer, which will cause
-   the writer to close and reopen the log file.
+   name of a pid file, the operating system pid (not the Erland pid) of
+   the writer will be stored in the pid file. This allows utilities such
+   as [logrotate][1] to send a USR1 signal to the writer, which will
+   cause the writer to close and reopen the log file.
 
 * `runtime_log_level:` _:debug_, _:info_, _:warn_, or _:error_
 
@@ -256,7 +268,7 @@ consumption.
     @debug => faint(),
     @info  => reset(),
     @warn  => yellow(),
-    @error => light_red() <> bright()
+    @error => light_red()
   }
   ~~~
 
@@ -276,7 +288,13 @@ consumption.
 
   Defaults to `true` if writing to a console, `false` otherwise.
 
-#### Writer:  Bunyan.Writers.Remote
+#### Writer:  Bunyan.Writer.Remote
+
+    :send_to,         # name of the remote logger process
+    :send_to_node,    # the node or nodes when the remote reader lives. If nil, send to all
+    :send_to_nodes,   # alias for `send_to_node`
+    :min_log_level,   # only send >= this,
+    :name,
 
 Used to forward log messages to another instance of Bunyan.
 
@@ -285,30 +303,30 @@ Used to forward log messages to another instance of Bunyan.
    Only log messages at or above this level will be forwarded to the
    remote logger.
 
-   Defaults to `:debug` in development, `:error` otherwise.
+   Defaults to `:warn`.
 
 * `send_to:`
 
   The name of the logger to send the log messages to. This name must
   have been given as an `accept_remote_as` option to that logger.
 
-* `retry_backoff_factor:`
+* `send_to_node:`  or `send_to_nodes:`
 
-  If this logged cannot find the remote logger, it initiates a series of
-  retries, with each retry waiting `retry_backoff_factor` times longer
-  than the previous. The first retry is after one second.
+  The name of a node, or a list of nodes. If specified, log messages
+  will be forwarded to the loggers on these nodes (connecting to the
+  nodes first if required). If not specified, the log message will be
+  broadcast to all connected nodes, and any log reader using the given
+  name will receive it.
 
-  The default is `3`, which means retries will take place at 1s, 3s, 9s,
-  27s, and so on.
+* `max_pending_size:` and `max_pending_wait:`
 
-* `max_retry_backoff:`
+  The remote logger tries to cut down on network traffic by batching
+  messages before forwarding them. Once it receives the first message in
+  a batch, it will then start a timer for `max_pending_wait:`
+  milliseconds (default 200). When this timer expires, or when
+  `max_pending_size` (default 100) messages are pending, all the
+  messages will be sent, and the batching process reinitiated.
 
-  The maximum time (in seconds) that the exponential backoff will wait
-  between retries. Defaults to 300s.
-
-  Once the backoff period reaches this value, the writer will try one
-  last time to contact the remote logger. If this fails, the writer will
-  generate an `error` level local log message and exit.
 
 ### Log Message Format Specifications
 
@@ -375,6 +393,12 @@ corresponding fields are substituted for the field names.
 
    The pid that generated the message
 
+* `$remote_info`
+
+   A combination of the pid and node, with a trailing newline. If a log
+   message originates from the same node that the logger is running on,
+   nothing will be generated.
+
 * `$extra`
 
    For messages generated via the API, this will be the contents of the
@@ -383,16 +407,13 @@ corresponding fields are substituted for the field names.
    For reports coming from the Erlang error logger, this will be the
    raw content of the report.
 
-The configuration options
+### A Sample Configuration
+
+This is probably _way_ more than you'd ever need to specify, but I
+wanted to show all the options:
 
 ~~~ elixir
 [
-  name:                   MyLogger,
-  accept_remote_as:       GlobalLogger,
-
-  runtime_log_level:      :debug,
-  compile_time_log_level: :info,
-
   read_from:              [
     Bunyan.Source.Api,
     Bunyan.Source.ErlangErrorLogger,
@@ -400,37 +421,68 @@ The configuration options
   write_to:               [
     {
       Bunyan.Writer.Device, [
-        main_format_string:        "$time [$level] $message_first_line",
+        name:  :stdout_logging,
+
+        main_format_string:        "$time [$level] $remote_info$message_first_line",
         additional_format_string:  "$message_rest\n$extra",
 
         level_colors:   %{
           @debug => faint(),
           @info  => green(),
           @warn  => yellow(),
-          @error => light_red() <> bright()
+          @error => light_red() <> bright(),
         },
         message_colors: %{
           @debug => faint(),
           @info  => reset(),
           @warn  => yellow(),
-          @error => light_red() <> bright()
+          @error => light_red(),
         },
         timestamp_color: faint(),
         extra_color:     italic() <> faint(),
 
         use_ansi_color?: true
-
       ]
     },
-    #{ Bunyan.Writers.Remote, [ send_to: YourLogger, min_log_level: :warn ] },
+    {
+      Bunyan.Writer.Device, [
+        name:  :critical_errors,
+        device:            "/var/log/myapp_errors.log",
+        pid_file_name:     "/var/run/myapp.pid",
+        rumtime_log_level: :error,
+        use_ansi_color?:   false,
+      ]
+    },
+    {
+       Bunyan.Writer.Remote, [
+
+          # assumes there's a Bunyan.Source.GlobalReader with
+          # `global_name: MyApp.GlobalLogger` running on
+          # the given two nodes
+
+          send_to: MyApp.GlobalLogger,
+          send_to_nodes:  [
+            :"main_logger@192.168.1.2",
+            :"backup_logger@192.68.1.2",
+          ],
+          runtime_log_level: :warn,
+      ]
+    },
   ]
 ]
 ~~~
 
+## To Do
+
+[ ] Runtime configuration (hooks are in place)
+[ ] Guides for creating your own sources and writers
+[ ] Finish off reformatting of Erlang error logger and sasl messages
+    (framework in place)
+
 ## Why Another Logger?
 
 I needed a distributed logger as part of the Toyland project, and
-couldn't find what I needed. I also wanted something more decoupled than
-the available options.
+couldn't find what I needed. I also wanted to experiment with something
+more decoupled than the available options.
 
 [1]: https://linux.die.net/man/8/logrotate
