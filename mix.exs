@@ -25,7 +25,7 @@ defmodule BunyanCore.MixProject do
 
   def deps(_) do
     [
-      bunyan:  [ bunyan_shared: "~> 0.0.0" ],
+      bunyan:  [ bunyan_shared: ">= 0.0.0" ],
       others:  [],
     ]
   end
