@@ -1,4 +1,4 @@
-defmodule Bunyan.Kickoff do
+defmodule BunyanCore.Kickoff do
 
   use GenServer
 
@@ -21,13 +21,13 @@ defmodule Bunyan.Kickoff do
 
   defp start_writers(config) do
     Keyword.get(config, :write_to, [])
-    |> Bunyan.Writer.load_all_from_config()
+    |> BunyanCore.Writer.load_all_from_config()
   end
 
   defp start_sources(config) do
     config
     |> Keyword.get(:read_from, [])
-    |> Bunyan.Source.load_all_from_config(Bunyan.Collector.Server)
+    |> BunyanCore.Source.load_all_from_config(BunyanCore.Collector.Server)
   end
 
 end

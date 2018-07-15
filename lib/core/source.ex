@@ -1,4 +1,4 @@
-defmodule Bunyan.Source do
+defmodule BunyanCore.Source do
 
 
   @me __MODULE__

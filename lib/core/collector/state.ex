@@ -1,4 +1,4 @@
-defmodule Bunyan.Collector.State do
+defmodule BunyanCore.Collector.State do
 
 
   # at some point we'll need collector options, and writing this makes

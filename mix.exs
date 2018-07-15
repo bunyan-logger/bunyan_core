@@ -1,35 +1,33 @@
-defmodule Bunyan.MixProject do
+unless function_exported?(Bunyan.Shared.Build, :__info__, 1),
+do: Code.require_file("shared_build_stuff/mix.exs")
+
+alias Bunyan.Shared.Build
+
+defmodule BunyanCore.MixProject do
   use Mix.Project
 
-  def project do
-    [
-      app:     :bunyan,
-      version: "0.1.0",
-      elixir:  "~> 1.6",
-      deps:    deps(System.get_env("BUNYAN_DEVELOPER")),
-      start_permanent: Mix.env() == :prod,
-    ]
+  def project() do
+    Build.project(
+      :bunyan_core,
+      "0.1.0",
+      &deps/1,
+      "The Bunyan distributed and pluggable logging system"
+    )
   end
 
-  def application do
+  def application() do
     [
       mod: {
-        Bunyan.Application, []
+        BunyanCore.Application, []
       },
     ]
   end
 
-  # not a Bunyan developer, so use hex
-  defp deps(nil) do
-        [
-          bunyan_shared: "~> 0.0.0",
-        ]
-      end
-
-  # otherwise use path dependencies
-  defp deps(_) do
+  def deps(_) do
     [
-      { :bunyan_shared, path: "../bunyan_shared" },
+      bunyan:  [ bunyan_shared: "~> 0.0.0" ],
+      others:  [],
     ]
   end
+
 end

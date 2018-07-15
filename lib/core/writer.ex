@@ -1,4 +1,4 @@
-defmodule Bunyan.Writer do
+defmodule BunyanCore.Writer do
 
   @me __MODULE__
 

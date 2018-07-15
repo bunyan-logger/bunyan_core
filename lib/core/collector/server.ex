@@ -1,7 +1,7 @@
-defmodule Bunyan.Collector.Server do
+defmodule BunyanCore.Collector.Server do
   use GenServer
 
-  alias Bunyan.Collector.State
+  alias BunyanCore.Collector.State
 
   def start_link(options) do
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
@@ -38,7 +38,7 @@ defmodule Bunyan.Collector.Server do
   end
 
   defp send_to_writers(msg) do
-    Bunyan.Writer.log_message(msg)
+    BunyanCore.Writer.log_message(msg)
   end
 
 
