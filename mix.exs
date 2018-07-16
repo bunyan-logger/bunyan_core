@@ -9,7 +9,7 @@ defmodule BunyanCore.MixProject do
   def project() do
     Build.project(
       :bunyan_core,
-      "0.1.0",
+      "0.5.0",
       &deps/1,
       "The Bunyan distributed and pluggable logging system"
     )
