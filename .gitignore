@@ -23,4 +23,5 @@ erl_crash.dump
 bunyan-*.tar
 
 /.elixir_ls/
-/.vscode/
+
+mix.lock

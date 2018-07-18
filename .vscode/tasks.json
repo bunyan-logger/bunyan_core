@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "All tests",
+      "type": "shell",
+      "command": "mix",
+      "group": "test",
+      "args": [
+        "test",
+        "--color",
+        "--trace"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}",
+        "requireFiles": [
+          "test/**/test_helper.exs",
+          "test/**/*_test.exs"
+        ],
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+
+      "problemMatcher": "$mixTestFailure"
+    },
+
+    {
+      "label": "This test",
+      "type": "shell",
+      "command": "mix",
+      "group": "test",
+      "args": [
+        "test",
+        "${relativeFile}:${lineNumber}",
+        "--color",
+        "--trace"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}",
+        "requireFiles": [
+          "test/**/test_helper.exs",
+          "test/**/*_test.exs"
+        ],
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+
+      "problemMatcher": "$mixTestFailure"
+    },
+
+
+    {
+      "label": "Test this file",
+      "type": "shell",
+      "command": "mix",
+      "group": "test",
+      "args": [
+        "test",
+        "${relativeFile}",
+        "--color",
+        "--trace"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}",
+        "requireFiles": [
+          "test/**/test_helper.exs",
+          "test/**/*_test.exs"
+        ],
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+
+      "problemMatcher": "$mixTestFailure"
+    },
+
+  ]
+}
